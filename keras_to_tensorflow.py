@@ -19,6 +19,7 @@ from absl import logging
 import keras
 from keras import backend as K
 from keras.models import model_from_json, model_from_yaml
+from CustomNets import NetVLADLayer, GhostVLADLayer
 
 K.set_learning_phase(0)
 FLAGS = flags.FLAGS
@@ -60,7 +61,7 @@ def load_model(input_model_path, input_json_path=None, input_yaml_path=None):
         raise FileNotFoundError(
             'Model file `{}` does not exist.'.format(input_model_path))
     try:
-        model = keras.models.load_model(input_model_path)
+        model = keras.models.load_model(input_model_path, custom_objects={'NetVLADLayer': NetVLADLayer, 'GhostVLADLayer': GhostVLADLayer} )
         return model
     except FileNotFoundError as err:
         logging.error('Input mode file (%s) does not exist.', FLAGS.input_model)
@@ -171,6 +172,8 @@ def main(args):
             sess,
             sess.graph.as_graph_def(),
             converted_output_node_names)
+
+    print('converted_output_node_names=', converted_output_node_names)
 
     graph_io.write_graph(constant_graph, str(output_fld), output_model_name,
                          as_text=False)
